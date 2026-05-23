@@ -1,4 +1,4 @@
-# AI
+# Pollama Rag
 
 Local RAG (Retrieval-Augmented Generation) stack running on Podman containers.
 
