@@ -1,0 +1,15 @@
+FROM python:3.12
+
+WORKDIR /app
+
+RUN pip install fastapi uvicorn \
+    llama-index \
+    llama-index-llms-ollama \
+    llama-index-embeddings-ollama \
+    llama-index-vector-stores-chroma \
+    chromadb \
+    pypdf
+
+COPY app.py .
+
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
