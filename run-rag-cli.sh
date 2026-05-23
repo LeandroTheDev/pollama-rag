@@ -4,8 +4,8 @@
 IMAGE_NAME="localhost/rag-cli"
 APP_DIR="$BASE_DIR/rag-cli"
 
-#podman rm -f rag-cli
-#podman rmi localhost/rag-cli
+podman rm -f rag-cli
+podman rmi localhost/rag-cli
 
 if ! podman image exists "$IMAGE_NAME"; then
     echo "Building rag-cli..."

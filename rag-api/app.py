@@ -10,8 +10,8 @@ import chromadb
 app = FastAPI()
 OLLAMA_URL = "http://host.containers.internal:11434"
 
-embed_model = OllamaEmbedding(model_name="nomic-embed-text", base_url=OLLAMA_URL, request_timeout=300.0)
-llm = Ollama(model="qwen3.5:4b", base_url=OLLAMA_URL, request_timeout=300.0, context_window=4096)
+embed_model = OllamaEmbedding(model_name="nomic-embed-text", base_url=OLLAMA_URL, request_timeout=None)
+llm = Ollama(model="qwen3.5:4b", base_url=OLLAMA_URL, request_timeout=None, context_window=4096)
 
 chroma_client = chromadb.HttpClient(host="host.containers.internal", port=8001)
 collection = chroma_client.get_or_create_collection("documents")

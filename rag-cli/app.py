@@ -5,7 +5,7 @@ import httpx
 API_URL = "http://127.0.0.1:8000"
 
 def stream_ask(question: str):
-    with httpx.Client(timeout=120.0) as client:
+    with httpx.Client(timeout=None) as client:
         with client.stream("POST", f"{API_URL}/ask/stream",
                            json={"question": question}) as r:
             r.raise_for_status()
@@ -14,7 +14,7 @@ def stream_ask(question: str):
     print()
 
 def ingest():
-    with httpx.Client(timeout=120.0) as client:
+    with httpx.Client(timeout=None) as client:
         r = client.post(f"{API_URL}/ingest", json={})
         r.raise_for_status()
         data = r.json()
