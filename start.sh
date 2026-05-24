@@ -41,7 +41,7 @@ start_container ollama \
     docker.io/ollama/ollama
 
 # Pull models if needed
-for MODEL in qwen3.5:4b nomic-embed-text; do
+for MODEL in "$LLM_MODEL" "$EMBED_MODEL"; do
     if ! podman exec ollama ollama list | grep -q "$MODEL"; then
         echo "[ollama] pulling $MODEL..."
         podman exec ollama ollama pull "$MODEL"
@@ -59,6 +59,8 @@ fi
 start_container rag-api \
     --name rag-api \
     --restart=always \
+    -e "LLM_MODEL=$LLM_MODEL" \
+    -e "EMBED_MODEL=$EMBED_MODEL" \
     -v "$BASE_DIR/documents:/app/documents" \
     -p 8000:8000 \
     "$IMAGE_NAME"

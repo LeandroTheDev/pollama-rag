@@ -5,13 +5,15 @@ from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, StorageCon
 from llama_index.llms.ollama import Ollama
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.vector_stores.chroma import ChromaVectorStore
-import chromadb
+import chromadb, os
 
 app = FastAPI()
 OLLAMA_URL = "http://host.containers.internal:11434"
+LLM_MODEL = os.environ.get("LLM_MODEL", "qwen3.5:4b")
+EMBED_MODEL = os.environ.get("EMBED_MODEL", "nomic-embed-text")
 
-embed_model = OllamaEmbedding(model_name="nomic-embed-text", base_url=OLLAMA_URL, request_timeout=99999.0)
-llm = Ollama(model="qwen3.5:4b", base_url=OLLAMA_URL, request_timeout=99999.0, context_window=4096, additional_kwargs={"think": False})
+embed_model = OllamaEmbedding(model_name=EMBED_MODEL, base_url=OLLAMA_URL, request_timeout=99999.0)
+llm = Ollama(model=LLM_MODEL, base_url=OLLAMA_URL, request_timeout=99999.0, context_window=4096, additional_kwargs={"think": False})
 
 chroma_client = chromadb.HttpClient(host="host.containers.internal", port=8001)
 collection = chroma_client.get_or_create_collection("documents")
