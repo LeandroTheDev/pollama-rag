@@ -4,5 +4,5 @@
 BASE_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 
 # Models — change here to switch without rebuilding images
-LLM_MODEL="${LLM_MODEL:-qwen3.5:4b}"
+LLM_MODEL="${LLM_MODEL:-qwen3.5:2b}"
 EMBED_MODEL="${EMBED_MODEL:-BAAI/bge-small-en-v1.5}"

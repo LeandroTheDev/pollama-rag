@@ -39,14 +39,12 @@ def ask_stream(req: AskRequest):
         yield event("status", step="Embedding query", pct=20)
         retriever = index.as_retriever(similarity_top_k=2)
         nodes = retriever.retrieve(req.question)
-        yield event("status", step="Searching documents", pct=60)
-        from llama_index.core.response_synthesizers import get_response_synthesizer
-        synthesizer = get_response_synthesizer(llm=llm, streaming=True)
-        yield event("status", step="Generating response", pct=80)
-        response = synthesizer.synthesize(req.question, nodes=nodes)
-        for token in response.response_gen:
-            if token:
-                yield event("token", text=token)
+        yield event("status", step="Generating response", pct=60)
+        context = "\n\n".join(n.get_content() for n in nodes)
+        prompt = f"Context:\n{context}\n\nQuestion: {req.question}\nAnswer in the same language as the question:"
+        for chunk in llm.stream_complete(prompt):
+            if chunk.delta:
+                yield event("token", text=chunk.delta)
         yield event("done")
     return StreamingResponse(generate(), media_type="application/x-ndjson")
 

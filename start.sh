@@ -46,7 +46,7 @@ if ! podman exec ollama ollama list | grep -q "$LLM_MODEL"; then
     podman exec ollama ollama pull "$LLM_MODEL"
 fi
 
-# RAG API
+# RAG API (always recreated to pick up env var changes)
 IMAGE_NAME="localhost/rag-api"
 APP_DIR="$BASE_DIR/rag-api"
 mkdir -p "$APP_DIR"
@@ -54,7 +54,8 @@ if ! podman image exists "$IMAGE_NAME"; then
     echo "[rag-api] building..."
     podman build -t "$IMAGE_NAME" -f "$APP_DIR/Containerfile" "$APP_DIR"
 fi
-start_container rag-api \
+podman rm -f rag-api 2>/dev/null
+podman run -d \
     --name rag-api \
     --restart=always \
     -e "LLM_MODEL=$LLM_MODEL" \
@@ -62,6 +63,7 @@ start_container rag-api \
     -v "$BASE_DIR/documents:/app/documents" \
     -p 8000:8000 \
     "$IMAGE_NAME"
+echo "[rag-api] started"
 
 echo ""
 echo "Waiting services..."
