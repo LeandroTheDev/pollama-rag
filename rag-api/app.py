@@ -37,9 +37,9 @@ def event(type, **kwargs):
 @app.post("/ask/stream")
 def ask_stream(req: AskRequest):
     def generate():
-        yield event("status", step="Recuperando contexto", pct=30)
+        yield event("status", step="Retrieving context", pct=30)
         response = streaming_engine.query(req.question)
-        yield event("status", step="Gerando resposta", pct=70)
+        yield event("status", step="Generating response", pct=70)
         for token in response.response_gen:
             if token:
                 yield event("token", text=token)
