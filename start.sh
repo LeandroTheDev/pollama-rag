@@ -25,7 +25,7 @@ mkdir -p "$APP_DIR"
 start_container chromadb \
     --name chromadb \
     --restart=always \
-    -v "$APP_DIR:/chroma/chroma" \
+    -v "$APP_DIR:/data" \
     -p 8001:8000 \
     docker.io/chromadb/chroma
 
@@ -40,13 +40,11 @@ start_container ollama \
     -p 11434:11434 \
     docker.io/ollama/ollama
 
-# Pull models if needed
-for MODEL in "$LLM_MODEL" "$EMBED_MODEL"; do
-    if ! podman exec ollama ollama list | grep -q "$MODEL"; then
-        echo "[ollama] pulling $MODEL..."
-        podman exec ollama ollama pull "$MODEL"
-    fi
-done
+# Pull LLM model if needed (embed model is handled by FastEmbed locally)
+if ! podman exec ollama ollama list | grep -q "$LLM_MODEL"; then
+    echo "[ollama] pulling $LLM_MODEL..."
+    podman exec ollama ollama pull "$LLM_MODEL"
+fi
 
 # RAG API
 IMAGE_NAME="localhost/rag-api"

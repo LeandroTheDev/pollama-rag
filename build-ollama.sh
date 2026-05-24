@@ -20,9 +20,6 @@ if ! podman exec ollama ollama list | grep -q "$LLM_MODEL"; then
     podman exec -it ollama ollama pull "$LLM_MODEL"
 fi
 
-if ! podman exec ollama ollama list | grep -q "$EMBED_MODEL"; then
-    podman exec -it ollama ollama pull "$EMBED_MODEL"
-fi
 
 sleep 3
 podman stop ollama
