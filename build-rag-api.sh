@@ -26,4 +26,6 @@ else
       "$IMAGE_NAME"
 fi
 
-podman logs --tail 999 rag-api && podman exec -it rag-api sh
+podman logs --tail 999 rag-api
+sleep 3
+podman stop rag-api

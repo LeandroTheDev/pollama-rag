@@ -15,4 +15,6 @@ else
       docker.io/chromadb/chroma
 fi
 
-podman logs --tail 999 chromadb && podman exec -it chromadb sh
+podman logs --tail 999 chromadb
+sleep 3
+podman stop chromadb

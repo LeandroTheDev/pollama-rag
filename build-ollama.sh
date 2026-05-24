@@ -16,12 +16,13 @@ else
       docker.io/ollama/ollama
 fi
 
-if ! podman exec ollama ollama list | grep -q "qwen3.5:4b"; then
-    podman exec -it ollama ollama pull qwen3.5:4b
+if ! podman exec ollama ollama list | grep -q "$LLM_MODEL"; then
+    podman exec -it ollama ollama pull "$LLM_MODEL"
 fi
 
-if ! podman exec ollama ollama list | grep -q "nomic-embed-text"; then
-    podman exec -it ollama ollama pull nomic-embed-text
+if ! podman exec ollama ollama list | grep -q "$EMBED_MODEL"; then
+    podman exec -it ollama ollama pull "$EMBED_MODEL"
 fi
 
-podman exec -it ollama ollama run qwen3.5:9b
+sleep 3
+podman stop ollama
