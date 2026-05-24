@@ -12,6 +12,8 @@ if ! podman image exists "$IMAGE_NAME"; then
     podman build -t "$IMAGE_NAME" -f "$APP_DIR/Containerfile" "$APP_DIR"
 fi
 
+stty sane 2>/dev/null || true
+
 podman run -it --rm \
     --name rag-cli \
     --network host \
