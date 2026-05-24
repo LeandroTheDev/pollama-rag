@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import sys
 import httpx
+from docs_cleanup import clean_txt
+import glob, os
 
 API_URL = "http://127.0.0.1:8000"
 
@@ -9,9 +11,19 @@ def stream_ask(question: str):
         with client.stream("POST", f"{API_URL}/ask/stream",
                            json={"question": question}) as r:
             r.raise_for_status()
-            for chunk in r.iter_text():
-                print(chunk, end="", flush=True)
+            for chunk in r.iter_bytes():
+                print(chunk.decode("utf-8", errors="replace"), end="", flush=True)
     print()
+
+def clean():
+    base = "/app/documents"
+    count = 0
+    for file in glob.glob(os.path.join(base, "**/*.txt"), recursive=True):
+        if not file.endswith('.kate-swp'):
+            clean_txt(file)
+            print(f"Cleaned: {file}")
+            count += 1
+    print(f"✓ {count} file(s) cleaned")
 
 def ingest():
     with httpx.Client(timeout=None) as client:
@@ -30,7 +42,7 @@ def health():
         return False
 
 def main():
-    print("RAG CLI — type 'quit' to exit, 'ingest' or '/ingest' to index documents\n")
+    print("RAG CLI — type 'quit' to exit, 'ingest' or '/ingest' to index documents, 'clean' or '/clean' to clean documents\n")
 
     if not health():
         print(f"✗ API unavailable at {API_URL}")
@@ -49,6 +61,9 @@ def main():
             continue
         if question.lower() in ("exit", "quit"):
             break
+        if question.lower() in ("clean", "/clean"):
+            clean()
+            continue
         if question.lower() in ("ingest", "/ingest"):
             ingest()
             continue

@@ -4,6 +4,6 @@ WORKDIR /app
 
 RUN pip install httpx
 
-COPY app.py .
+COPY app.py docs_cleanup.py ./
 
 CMD ["python", "app.py"]

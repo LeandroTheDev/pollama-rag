@@ -70,5 +70,11 @@ sleep 3
 echo ""
 podman ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
+until curl -s http://127.0.0.1:8000/health > /dev/null; do
+    echo "Waiting rag-api..."
+    sleep 2
+done
+
 echo ""
+
 ./run-rag-cli.sh
