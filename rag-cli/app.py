@@ -2,17 +2,68 @@
 import sys
 import httpx
 from docs_cleanup import clean_txt
-import glob, os
+from prompt_toolkit import prompt as pt_prompt
+from prompt_toolkit.formatted_text import FormattedText
+from prompt_toolkit.styles import Style
+from prompt_toolkit.output import create_output
+from prompt_toolkit import print_formatted_text
+import glob, os, termios, json
 
 API_URL = "http://127.0.0.1:8000"
 
+style = Style.from_dict({
+    "you": "ansiyellow bold",
+    "rag": "ansigreen bold",
+})
+
+output = create_output()
+
+BAR_WIDTH = 20
+
+def show_status(step, pct):
+    filled = round(pct / 100 * BAR_WIDTH)
+    bar = "█" * filled + "░" * (BAR_WIDTH - filled)
+    sys.stdout.write(f"\r\033[2K\033[36m[{bar}] {pct:3d}%  {step}...\033[0m")
+    sys.stdout.flush()
+
+def clear_status():
+    sys.stdout.write("\r\033[2K")
+    sys.stdout.flush()
+
 def stream_ask(question: str):
-    with httpx.Client(timeout=None) as client:
-        with client.stream("POST", f"{API_URL}/ask/stream",
-                           json={"question": question}) as r:
-            r.raise_for_status()
-            for chunk in r.iter_bytes():
-                print(chunk.decode("utf-8", errors="replace"), end="", flush=True)
+    fd = sys.stdin.fileno()
+    is_tty = sys.stdin.isatty()
+    if is_tty:
+        old_attrs = termios.tcgetattr(fd)
+        no_echo = termios.tcgetattr(fd)
+        no_echo[3] &= ~termios.ECHO
+        termios.tcsetattr(fd, termios.TCSANOW, no_echo)
+
+    generating = False
+    try:
+        with httpx.Client(timeout=None) as client:
+            with client.stream("POST", f"{API_URL}/ask/stream",
+                               json={"question": question}) as r:
+                r.raise_for_status()
+                for line in r.iter_lines():
+                    if not line:
+                        continue
+                    ev = json.loads(line)
+                    if ev["type"] == "status":
+                        show_status(ev["step"], ev["pct"])
+                    elif ev["type"] == "token":
+                        if not generating:
+                            clear_status()
+                            print_formatted_text(FormattedText([("class:rag", "rag: ")]), style=style, end="")
+                            generating = True
+                        sys.stdout.write(ev["text"])
+                        sys.stdout.flush()
+                    elif ev["type"] == "done":
+                        break
+    finally:
+        if is_tty:
+            termios.tcsetattr(fd, termios.TCSANOW, old_attrs)
+            termios.tcflush(fd, termios.TCIFLUSH)
     print()
 
 def clean():
@@ -52,7 +103,10 @@ def main():
 
     while True:
         try:
-            question = input("you: ").strip()
+            question = pt_prompt(
+                FormattedText([("class:you", "you: ")]),
+                style=style,
+            ).strip()
         except (EOFError, KeyboardInterrupt):
             print("\nExiting.")
             break
@@ -68,7 +122,6 @@ def main():
             ingest()
             continue
 
-        print("rag: ", end="", flush=True)
         try:
             stream_ask(question)
         except httpx.HTTPStatusError as e:

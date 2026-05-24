@@ -5,7 +5,7 @@ from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, StorageCon
 from llama_index.llms.ollama import Ollama
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.vector_stores.chroma import ChromaVectorStore
-import chromadb, os
+import chromadb, os, json
 
 app = FastAPI()
 OLLAMA_URL = "http://host.containers.internal:11434"
@@ -31,13 +31,20 @@ def ask(req: AskRequest):
     response = query_engine.query(req.question)
     return {"answer": str(response)}
 
+def event(type, **kwargs):
+    return json.dumps({"type": type, **kwargs}) + "\n"
+
 @app.post("/ask/stream")
 def ask_stream(req: AskRequest):
-    response = streaming_engine.query(req.question)
     def generate():
+        yield event("status", step="Recuperando contexto", pct=30)
+        response = streaming_engine.query(req.question)
+        yield event("status", step="Gerando resposta", pct=70)
         for token in response.response_gen:
-            yield token
-    return StreamingResponse(generate(), media_type="text/plain")
+            if token:
+                yield event("token", text=token)
+        yield event("done")
+    return StreamingResponse(generate(), media_type="application/x-ndjson")
 
 @app.post("/ingest")
 def ingest():
