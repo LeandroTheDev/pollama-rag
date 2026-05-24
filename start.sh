@@ -80,3 +80,4 @@ done
 echo ""
 
 ./run-rag-cli.sh
+./stop.sh
